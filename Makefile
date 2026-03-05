@@ -20,7 +20,7 @@ payload_bin.c: $(KSTUFF_PATH)
 
 kldload.elf:
 	@rm -f *.o *.elf
-	$(CC) -o $@ src/*.c src/*.asm -O0
+	$(CC) -o $@ src/*.c -O0
 	strip $@
 	
 clean: $(KSTUFF_PATH)
