@@ -58,45 +58,57 @@ void _kldload(int fd, void* data, ssize_t data_size)
     uint64_t exec_code;
     uint64_t kproc_name;
     uint64_t kthread_args;
-    
+
+    printf("[debug] _kldload called, data_size=%ld, kstuff_loaded=%d\n", data_size, kstuff_loaded);
+    printf("[debug] r0gdb_kmem_alloc=%p, r0gdb_kproc_create=%p\n",
+        (void*)r0gdb.r0gdb_kmem_alloc, (void*)r0gdb.r0gdb_kproc_create);
+    fflush(stdout);
+
     if (!kstuff_loaded)
     {
+        printf("[debug] calling r0gdb_kmem_alloc(%ld)...\n", data_size);
+        fflush(stdout);
         exec_code = r0gdb.r0gdb_kmem_alloc(data_size);
-        kproc_name = r0gdb.r0gdb_kmem_alloc(0x100); // leave the default prot
+        printf("[debug] exec_code = %#lx\n", exec_code);
+        fflush(stdout);
+
+        kproc_name = r0gdb.r0gdb_kmem_alloc(0x100);
+        printf("[debug] kproc_name = %#lx\n", kproc_name);
+        fflush(stdout);
+
         kthread_args = r0gdb.r0gdb_kmem_alloc(sizeof(kproc_args));
+        printf("[debug] kthread_args = %#lx\n", kthread_args);
+        fflush(stdout);
     }
     else
     {
         exec_code = kmem_alloc(data_size);
-        kproc_name = kmem_alloc(0x100); // leave the default prot
+        kproc_name = kmem_alloc(0x100);
         kthread_args = kmem_alloc(sizeof(kproc_args));
     }
-
-    #ifdef DEBUG
-
-    printf("code size: %ld bytes\nExec code address: %#02lx\nkproc_name addr: %#02lx\n kthread_args: %#02lx\n", 
-        data_size, 
-        exec_code,
-        kproc_name,
-        kthread_args);
-    #endif
 
     payload_args_t* payload_args = payload_get_args();
     kproc_args args;
     args.kdata_base = payload_args->kdata_base_addr;
     args.fw_ver = fw_version;
 
-    //
-    // Kernel write
-    // 
-    
-    puts("Writing data...");
+    printf("[debug] kdata_base=%#lx fw_ver=%u\n", args.kdata_base, args.fw_ver);
+    fflush(stdout);
+
+    puts("[debug] kernel_copyin exec_code...");
+    fflush(stdout);
     kernel_copyin(data, exec_code, data_size);
+
+    puts("[debug] kernel_copyin kproc_name...");
+    fflush(stdout);
     kernel_copyin(KTHREAD_NAME, kproc_name, sizeof(KTHREAD_NAME));
+
+    puts("[debug] kernel_copyin kthread_args...");
+    fflush(stdout);
     kernel_copyin(&args, kthread_args, sizeof(args));
 
-
-    printf("Lauching kthread at %#02lx...\n", exec_code);
+    printf("[debug] launching kthread at %#lx...\n", exec_code);
+    fflush(stdout);
 
     if (kstuff_loaded)
         kproc_create(exec_code, kthread_args, kproc_name);
