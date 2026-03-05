@@ -5,7 +5,7 @@ ODIR	:= build
 SDIR	:= src
 
 MAPFILE := $(shell basename "$(CURDIR)").map
-CFLAGS	:= $(IDIRS) -Os -std=c11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib -Wall -Wextra -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -fpie -fPIC
+CFLAGS	:= $(IDIRS) -Os -std=c11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib -Wall -Wextra -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -fpie
 CFLAGS += -DFIRMWARE=$(FIRMWARE)
 
 LFLAGS	:= -Xlinker -T ./linker.x -Xlinker -Map="$(MAPFILE)" -Wl,--build-id=none -Wl,--gc-sections

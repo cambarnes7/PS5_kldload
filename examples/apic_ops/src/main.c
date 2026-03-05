@@ -59,12 +59,15 @@ typedef struct __kproc_args {
 } kproc_args;
 
 /* ── Kernel function pointers ── */
+/* Must be static so -fpie uses direct RIP-relative access (no GOT) */
 
-void (*kprintf)(char *fmt, ...);
-uint64_t kdata_address;
+static void (*kprintf)(char *fmt, ...);
+static uint64_t kdata_address;
 
-/* apic_ops slot names (from FreeBSD lapic.c) */
-static const char *apic_op_names[] = {
+/* apic_ops slot names (from FreeBSD lapic.c)
+ * Use 2D char array instead of pointer array to avoid needing
+ * R_X86_64_RELATIVE relocations (flat binary has no dynamic linker) */
+static const char apic_op_names[][25] = {
     "create", "init", "xapic_mode", "is_x2apic",
     "setup", "dump", "disable", "eoi",
     "id", "set_id", "ipi_raw", "ipi_vectored",

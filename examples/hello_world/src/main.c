@@ -20,8 +20,9 @@ typedef struct __kproc_args
 } kproc_args;
 
 
-void(*kprintf)(char* fmt, ...);
-uint64_t kdata_address;
+/* Must be static so -fpie uses direct RIP-relative access (no GOT) */
+static void(*kprintf)(char* fmt, ...);
+static uint64_t kdata_address;
 
 
 void init_kernel()
