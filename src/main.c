@@ -47,7 +47,29 @@ uint32_t get_fw_version()
 int is_kstuff_unsupported()
 {
     uint64_t exec_code = kmem_alloc(0x100);
-    return (exec_code & 0xff) == getppid();
+    pid_t ppid = getppid();
+    printf("[debug] kmem_alloc(0x100) raw = %#lx, getppid() = %d\n", exec_code, ppid);
+    printf("[debug] (exec_code & 0xff) = %#lx vs ppid = %d\n", exec_code & 0xff, ppid);
+    fflush(stdout);
+
+    // A real kernel address should be in the 0xffffff80... range
+    // and should NOT have its low byte coincidentally match getppid()
+    // Also do a second allocation to confirm consistency
+    uint64_t exec_code2 = kmem_alloc(0x100);
+    printf("[debug] kmem_alloc(0x100) #2 = %#lx\n", exec_code2);
+    fflush(stdout);
+
+    // If both allocations return the same value, it's likely just getpid() echoing back
+    // A real allocator would return different addresses
+    if (exec_code == exec_code2) {
+        printf("[debug] both allocs identical -> kekcall nr=6 NOT working\n");
+        fflush(stdout);
+        return 1;
+    }
+
+    printf("[debug] allocs differ -> kekcall nr=6 IS working\n");
+    fflush(stdout);
+    return 0;
 }
 
 void _kldload(int fd, void* data, ssize_t data_size)
