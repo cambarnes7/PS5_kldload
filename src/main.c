@@ -125,19 +125,16 @@ int main(int argc, char const *argv[])
 
     if (kstuff_loaded && is_kstuff_unsupported())
     {
-        char* err_msg = "The current kstuff build is not supported, unload kstuff before use! aborting kldload loading...";
-        puts(err_msg);
-        notify_send(err_msg);
-        return 1;
-    } 
-    else
+        puts("kstuff loaded but kekcall nr=6 unsupported, falling back to r0gdb...");
+        notify_send("kstuff unsupported kekcalls, using r0gdb fallback");
+        kstuff_loaded = 0;  // Force r0gdb path for kmem_alloc/kproc_create
+    }
+
+    load_r0gdb(&r0gdb);
+    if (r0gdb.r0gdb_init_ptr(args->sys_dynlib_dlsym, (int) args->rwpair[0], (int) args->rwpair[1], 0, args->kdata_base_addr))
     {
-        load_r0gdb(&r0gdb);
-        if (r0gdb.r0gdb_init_ptr(args->sys_dynlib_dlsym, (int) args->rwpair[0], (int) args->rwpair[1], 0, args->kdata_base_addr))
-        {
-            notify_send("Failed to start r0gdb, aborting kldload loading...");
-            return 1;
-        }
+        notify_send("Failed to start r0gdb, aborting kldload loading...");
+        return 1;
     }
 
     
